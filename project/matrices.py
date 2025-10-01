@@ -1,8 +1,13 @@
-def transpose(A: list[list[float]]) -> list[list[float]]:
+from typing import Union
+
+Number = Union[int, float]
+
+
+def transpose(A: list[list[Number]]) -> list[list[Number]]:
     return [list(row) for row in zip(*A)]
 
 
-def add(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
+def add(A: list[list[Number]], B: list[list[Number]]) -> list[list[Number]]:
     if len(A) != len(B) or len(A[0]) != len(B[0]):
         raise ValueError("Матрицы должны иметь одинаковые размерности")
     n = len(A)
@@ -14,7 +19,7 @@ def add(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
     return c
 
 
-def multiply(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
+def multiply(A: list[list[Number]], B: list[list[Number]]) -> list[list[Number]]:
     if len(A[0]) != len(B):
         raise ValueError(
             "Неверные размерности: "
