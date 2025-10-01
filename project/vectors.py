@@ -2,14 +2,14 @@ from math import sqrt, acos, pi
 
 
 def dot_product(a: list[float], b: list[float]) -> float:
-    c = 0
+    c = 0.0
     for i in range(len(a)):
         c += a[i] * b[i]
     return c
 
 
 def length(a: list[float]) -> float:
-    c = 0
+    c = 0.0
     for i in range(len(a)):
         c += a[i] ** 2
 

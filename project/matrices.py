@@ -7,7 +7,7 @@ def add(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
         raise ValueError("Матрицы должны иметь одинаковые размерности")
     n = len(A)
     m = len(A[0])
-    c = [[0 for _ in range(m)] for _ in range(n)]
+    c = [[0.0 for _ in range(m)] for _ in range(n)]
     for i in range(n):
         for j in range(m):
             c[i][j] += A[i][j] + B[i][j]
@@ -24,7 +24,7 @@ def multiply(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
 
     m, n, p = len(A), len(B), len(B[0])
 
-    C = [[0 for _ in range(p)] for _ in range(m)]
+    C = [[0.0 for _ in range(p)] for _ in range(m)]
 
     for i in range(m):
         for j in range(p):
