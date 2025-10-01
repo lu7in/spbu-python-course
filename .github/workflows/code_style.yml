@@ -55,3 +55,12 @@ jobs:
       - name: Run pre-commit
         run: |
           pre-commit run --all-files --color always --verbose --show-diff-on-failure
+
+      - name: Test with pytest
+        run: |
+          python scripts/run_tests.py
+
+      - name: Check types with mypy
+        run: |
+          python -m mypy ./project
+          python -m mypy ./tests
