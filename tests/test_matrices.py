@@ -1,5 +1,5 @@
 import pytest
-from project import matrices
+from project.task1 import matrices
 from typing import Union
 
 Number = Union[int, float]

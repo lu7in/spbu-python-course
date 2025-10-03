@@ -1,6 +1,6 @@
 import pytest
 
-from project import vectors
+from project.task1 import vectors
 from typing import Union
 
 Number = Union[int, float]
