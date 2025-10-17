@@ -3,8 +3,7 @@ Lazy data processing system using Python generators.
 
 Implements following features:
     - Input data stream generator
-    - Wrapper for builtin (map, filter, zip, reduce) and user-defined functions
-    - Pipline for data processing
+    - Pipline for data processing, supporting built in (map, filter, zip, reduce) and user-defined functions
     - Result aggregation function
 """
 
