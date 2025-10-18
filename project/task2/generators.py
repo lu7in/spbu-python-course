@@ -10,18 +10,23 @@ Implements following features:
 
 from typing import Callable, Iterable, Generator, Any, Iterator, Collection
 from functools import reduce
+import random
 
 
-def input_generator(data: Iterable[Any]) -> Generator[Any, None, None]:
+def input_generator(start: int, end:int, length:int) -> Generator[Any, None, None]:
     """
-    Generator for input data stream.
+    Generates a sequence of random integers in a given range
 
-    Args: any iterable object
+    Args:
+        start - integer random number greater or equal to which we expect
+        end - integer random number lesser or equal to which we expect
+        length - how many random numbers we expect
 
     returns: generator
     """
-    for item in data:
-        yield item
+    for i in range(length):
+        yield random.randint(start, end)
+
 
 
 def function_wrapper(

@@ -5,17 +5,34 @@ from project.task2.generators import *
 
 
 @pytest.mark.parametrize(
-    "input_data, expected_output",
+    "start, end, length",
     [
-        ([1, 2, 3], [1, 2, 3]),
-        ([], []),
-        (range(5), [0, 1, 2, 3, 4]),
-        (("a", "b"), ["a", "b"]),
+    (1, 10, 100),
+    (-50, 50, 200),
+    (0, 1000, 50),
     ],
 )
-def test_input_generator(input_data, expected_output):
-    assert list(input_generator(input_data)) == expected_output
+def test_generator_values_in_range(start, end, length):
+    """Проверяем, что все значения находятся в указанном диапазоне."""
+    gen = input_generator(start, end, length)
 
+    for value in gen:
+        assert start <= value <= end, f"Значение {value} вне диапазона [{start}, {end}]"
+
+@pytest.mark.parametrize("start, end, length", [
+    (1, 10, 5),  # положительные числа
+    (-5, 5, 3),  # отрицательные и положительные
+    (0, 1, 10),  # граничные значения
+    (100, 100, 5),  # одинаковые start и end
+    (1, 100, 1),  # минимальная длина
+    (1, 10, 0),  # нулевая длина
+])
+def test_generator_yields_correct_length(start, end, length):
+    """Проверяем, что генератор выдает правильное количество элементов."""
+    gen = input_generator(start, end, length)
+    result = list(gen)
+
+    assert len(result) == length
 
 @pytest.mark.parametrize(
     "func,args,data,expected",
