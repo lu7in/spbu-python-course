@@ -13,7 +13,7 @@ from functools import reduce
 import random
 
 
-def input_generator(start: int, end:int, length:int) -> Generator[Any, None, None]:
+def input_generator(start: int, end: int, length: int) -> Generator[Any, None, None]:
     """
     Generates a sequence of random integers in a given range
 
@@ -26,7 +26,6 @@ def input_generator(start: int, end:int, length:int) -> Generator[Any, None, Non
     """
     for i in range(length):
         yield random.randint(start, end)
-
 
 
 def function_wrapper(
@@ -57,7 +56,7 @@ def function_wrapper(
         return lambda data: iter(function(data, *args, **kwargs))
 
 
-def pipeline(data: Iterable[Any], *operations: Callable) -> Iterable[Any]:
+def pipeline(data: Iterable[Any], *operations: Callable) -> Iterator[Any]:
     """
     A pipline that applies given operations to input data stream.
 
@@ -71,7 +70,7 @@ def pipeline(data: Iterable[Any], *operations: Callable) -> Iterable[Any]:
     for operation in operations:
         res = operation(res)
 
-    return res
+    return iter(res)
 
 
 def collector(data: Iterable[Any], collection: Callable = list) -> Collection[Any]:

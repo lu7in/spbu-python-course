@@ -7,9 +7,9 @@ from project.task2.generators import *
 @pytest.mark.parametrize(
     "start, end, length",
     [
-    (1, 10, 100),
-    (-50, 50, 200),
-    (0, 1000, 50),
+        (1, 10, 100),
+        (-50, 50, 200),
+        (0, 1000, 50),
     ],
 )
 def test_generator_values_in_range(start, end, length):
@@ -19,20 +19,25 @@ def test_generator_values_in_range(start, end, length):
     for value in gen:
         assert start <= value <= end, f"Значение {value} вне диапазона [{start}, {end}]"
 
-@pytest.mark.parametrize("start, end, length", [
-    (1, 10, 5),  # положительные числа
-    (-5, 5, 3),  # отрицательные и положительные
-    (0, 1, 10),  # граничные значения
-    (100, 100, 5),  # одинаковые start и end
-    (1, 100, 1),  # минимальная длина
-    (1, 10, 0),  # нулевая длина
-])
+
+@pytest.mark.parametrize(
+    "start, end, length",
+    [
+        (1, 10, 5),  # положительные числа
+        (-5, 5, 3),  # отрицательные и положительные
+        (0, 1, 10),  # граничные значения
+        (100, 100, 5),  # одинаковые start и end
+        (1, 100, 1),  # минимальная длина
+        (1, 10, 0),  # нулевая длина
+    ],
+)
 def test_generator_yields_correct_length(start, end, length):
     """Проверяем, что генератор выдает правильное количество элементов."""
     gen = input_generator(start, end, length)
     result = list(gen)
 
     assert len(result) == length
+
 
 @pytest.mark.parametrize(
     "func,args,data,expected",
@@ -128,3 +133,33 @@ def test_pipeline(data, operations, expected):
 def test_collector(data, collection, expected):
     result = collector(data, collection)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "data, operations, expected",
+    [
+        (
+            range(6),
+            [
+                function_wrapper(map, lambda x: x**2),
+            ],
+            [
+                0,
+                1,
+                4,
+                9,
+                16,
+            ],
+        ),
+    ],
+)
+def test_lazy_pipeline(data, operations, expected):
+    """Pipeline laziness test"""
+    temp = pipeline(data, *operations)
+    assert [
+        next(temp),
+        next(temp),
+        next(temp),
+        next(temp),
+        next(temp),  # The rest is not calculated until called
+    ] == expected
