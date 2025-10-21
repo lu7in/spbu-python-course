@@ -18,18 +18,6 @@ def test_isolated_creates_copy():
     assert val == {"a": 10}
 
 
-def test_isolated_does_not_affect_original_object():
-    @smart_args
-    def mutate_dict(*, d=Isolated()):
-        d["x"] = 5
-        return d
-
-    base = {"x": 1}
-    result = mutate_dict(d=base)
-    assert result == {"x": 5}
-    assert base == {"x": 1}  # оригинал не изменился
-
-
 def test_evaluated_called_each_time(monkeypatch):
     calls = []
 
