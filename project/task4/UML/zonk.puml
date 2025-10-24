@@ -1,0 +1,86 @@
+@startuml
+' Classes
+class Dice {
+  {static} +roll(count: int): List[int]
+  --
+  "Класс для подбрасывания кубиков"
+}
+
+class Scorer {
+  {static} +score(dice: List[int]): Tuple[int,int,bool]
+  --
+  "Класс для подсчёта очков"
+}
+
+class Strategy {
+  {static} +conservative(player_score:int, turn_points:int, dice_remaining:int): bool
+  {static} +gambling(player_score:int, turn_points:int, dice_remaining:int): bool
+  {static} +risky(player_score:int, turn_points:int, dice_remaining:int): bool
+  {static} +balanced(player_score:int, turn_points:int, dice_remaining:int): bool
+  --
+  "Набор статических стратегий игроков (Callable)"
+}
+
+class Player {
+  -name: str
+  -strategy: Callable
+  -score: int
+  --
+  +__init__(name: str, strategy: Callable)
+  +__str__(): str
+  +play_turn(): TurnResult
+  --
+  "Класс отвечающий за поведение игрока-бота"
+}
+
+class TurnResult {
+  -player: Player
+  -gained: int
+  -zonked: bool
+  --
+  +__init__(player: Player, gained: int, zonked: bool)
+  +__repr__(): str
+  --
+  "Класс для вывода результата хода игрока"
+}
+
+class Game {
+  -players: List[Player]
+  -target_score: int
+  -max_rounds: Optional[int]
+  -dice: Dice
+  -scorer: Scorer
+  -round: int
+  -history: List[TurnResult]
+  --
+  +__init__(players: List[Player], target_score: int = 10000, max_rounds: Optional[int] = None)
+  +play_round(): None
+  +someone_reached_target(): bool
+  +play(): List[TurnResult]
+  +leaderboard(): List[tuple]
+  --
+  "Класс игры: управляет ходом раундов"
+}
+
+' Relationships / multiplicities
+Game "1" --> "0..*" Player : players
+Game "1" --> "0..*" TurnResult : history
+
+TurnResult "1" --> "1" Player : player
+
+Player ..> Strategy : strategy (Callable)
+Player ..> Dice : uses
+Player ..> Scorer : uses
+
+' Notes for special behaviors
+note right of Scorer
+  score(...) возвращает кортеж:
+  (points, scoring_count, extra_throw)
+end note
+
+note left of Player
+  play_turn() использует Dice.roll и Scorer.score,
+  создаёт TurnResult
+end note
+
+@enduml
