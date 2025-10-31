@@ -60,7 +60,9 @@ class BST:
             elif a > b:
                 return 1
         except TypeError:
-            return -1 if id(a) < id(b) else 1
+            pass
+
+        return -1 if id(a) < id(b) else 1
 
     def insert(self, key, value) -> bool:
         """
