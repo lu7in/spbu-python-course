@@ -7,7 +7,7 @@
 
 - [ ] Модифицировать реализацию хэш-таблицы из
  [задания 5](https://github.com/Krekep/spbu-python-course/blob/main/tasks/task5.md),
- адаптировав её для работы в многопоточной среде
+ адаптировав её для параллельной обработки операций 
   - Использовать [multiprocessing.Manager](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Manager) для создания разделяемого состояния
   - Операции должны быть защищены от [race condition](https://en.wikipedia.org/wiki/Race_condition) и [deadlock](https://en.wikipedia.org/wiki/Deadlock_(computer_science))
 - [ ] Написать тесты, проверяющие корректность работы в многопоточном режиме
