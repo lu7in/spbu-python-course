@@ -208,7 +208,9 @@ class Player:
         while True:
             roll = Dice.roll(dice_remaining)
             rolls_made += 1
-            points, scoring_count, extra_roll, zonk = self.scoring_algo(roll, rolls_made)
+            points, scoring_count, extra_roll, zonk = self.scoring_algo(
+                roll, rolls_made
+            )
 
             if points == 0 and zonk:
                 turn_points = 0
