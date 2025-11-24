@@ -1,140 +1,164 @@
-import project.task4.zonk as zonk
-from project.task4.zonk import Scorer, Player, Game, Strategy
+from project.task4.zonk import *
 
 
-def test_scorer_straight_and_three_pairs_and_triples():
+def test_scorer():
     # Straight 1-6
-    points, scoring_count, extra = Scorer.score([1, 2, 3, 4, 5, 6])
+    points, scoring_count, extra, zonk = Scorer.score_default([1, 2, 3, 4, 5, 6], 1)
     assert points == 1500
     assert scoring_count == 6
     assert extra is True
+    assert zonk is False
 
-    # Three pairs (2,2,3,3,4,4)
-    points, scoring_count, extra = Scorer.score([2, 2, 3, 3, 4, 4])
+    # Three pairs (e.g., 1,1,2,2,3,3)
+    points, scoring_count, extra, zonk = Scorer.score_default([1, 1, 2, 2, 3, 3], 1)
     assert points == 750
     assert scoring_count == 6
     assert extra is True
+    assert zonk is False
 
-    # Triple ones
-    points, scoring_count, extra = Scorer.score([1, 1, 1])
-    assert points == 1000
-    assert scoring_count == 3
+    # Three ones plus a five -> 1000 (three ones) + 50 (one five)
+    points, scoring_count, extra, zonk = Scorer.score_default([1, 1, 1, 5, 2, 3], 1)
+    assert points == 1050
+    assert scoring_count == 4  # three ones + the five
     assert extra is False
+    assert zonk is False
 
-    # Triple twos
-    points, scoring_count, extra = Scorer.score([2, 2, 2])
-    assert points == 200
-    assert scoring_count == 3
+    # Single one and five scoring
+    points, scoring_count, extra, zonk = Scorer.score_default([1, 5, 2, 2, 3, 4], 1)
+    assert points == 150
+    assert scoring_count == 2
     assert extra is False
+    assert zonk is False
 
-    # Four of a kind (3,3,3,3) -> 300 * 2 = 600
-    points, scoring_count, extra = Scorer.score([3, 3, 3, 3])
+    # No scoring dice -> zonk
+    points, scoring_count, extra, zonk = Scorer.score_default([2, 3, 4, 6, 2], 1)
+    assert points == 0
+    assert zonk is True
+
+    # Greedy should ignore single ones and fives
+    points, scoring_count, extra, zonk = Scorer.score_greedy([1, 5, 2, 2, 3, 4], 1)
+    assert points == 0
+    # Due to the player technically being able to score single dice but deciding not to it isn't zonk
+    assert zonk is False
+
+    # All-in doesn't score anything but a special combinations during first two throws
+    points, scoring_count, extra, zonk = Scorer.score_all_in([5, 5, 5, 1, 2, 3], 1)
+    assert points == 0
+    assert scoring_count == 0
+    assert zonk is False
+
+    # After two throws scores like score_default
+    points, scoring_count, extra, zonk = Scorer.score_all_in([5, 5, 5, 1, 2, 3], 3)
     assert points == 600
     assert scoring_count == 4
-    assert extra is False
-
-    # Six ones (1,1,1,1,1,1) -> 1000 * 4 = 4000
-    points, scoring_count, extra = Scorer.score([1, 1, 1, 1, 1, 1])
-    assert points == 4000
-    assert scoring_count == 6
-    assert extra is False
-
-    # Singles: two 1s and one 5 -> 2*100 + 1*50 = 250
-    points, scoring_count, extra = Scorer.score([1, 1, 5, 2, 4, 6])
-    assert points == 250
-    assert scoring_count == 3
-    assert extra is False
+    assert zonk is False
 
 
 def make_roll_sequence(seq):
-    """Возвращает функцию для подмены Dice.roll"""
+    """Returns function to replace Dice.roll with"""
     it = iter(seq)
 
     def roll(count):
         try:
             return next(it)
         except StopIteration:
-            # если последовательность исчерпана, возвращать последний элемент
             return seq[-1]
 
     return roll
 
 
-def test_player_play_turn_stop_and_zonk(monkeypatch):
+def test_player_zonk_turn_over(monkeypatch):
+    monkeypatch.setattr(Dice, "roll", make_roll_sequence([[3, 2, 3, 4, 6, 2]]))
 
-    player = Player("A", Strategy.gambling)
-    monkeypatch.setattr(
-        zonk.Dice,
-        "roll",
-        make_roll_sequence(
-            [[1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6], [1, 1, 1, 1, 1, 1]]
-        ),
-    )
+    player = Player("ZonkTest", Strategy.conservative, Scorer.score_default)
+    original_score = player.score
     result = player.play_turn()
-    assert result.zonked is False
-    assert result.gained == 7000
-    assert player.score == 7000
 
-    player2 = Player("B", Strategy.gambling)
+    assert isinstance(result, TurnResult)
+    assert result.gained == 0
+    assert result.zonked is True
+    assert player.score == original_score
+
+
+def test_player_strategies_in_play_turn(monkeypatch):
+    # Conservative: stops after the first roll -> should only gain points from first roll
     monkeypatch.setattr(
-        zonk.Dice, "roll", make_roll_sequence([[1, 2, 3, 4, 5, 6], [2, 3, 4, 2, 3, 6]])
+        Dice, "roll", make_roll_sequence([[1, 2, 3, 4, 6, 6], [1, 1, 1, 1, 1]])
     )
-    result2 = player2.play_turn()
-    assert result2.zonked is True
-    assert result2.gained == 0
-    assert player2.score == 0  # Зонк обнуляет заработанные ранее очки
+    p_cons = Player("Conservative", Strategy.conservative, Scorer.score_default)
+    res_cons = p_cons.play_turn()
+    assert res_cons.gained == 100
+    assert res_cons.zonked is False
+    assert p_cons.score == 100
 
+    # Gambling: continues while dice_remaining > 0
+    monkeypatch.setattr(
+        Dice,
+        "roll",
+        make_roll_sequence([[1, 2, 3, 4, 6, 6], [5, 5, 5, 3, 4], [1, 3], [5]]),
+    )
+    p_gamb = Player("Gambler", Strategy.gambling, Scorer.score_default)
+    res_gamb = p_gamb.play_turn()
+    assert res_gamb.gained == 750
+    assert res_gamb.zonked is False
+    assert p_gamb.score == 750
 
-def test_player_strategy(monkeypatch):
-    # Стратегия: продолжать, пока turn_points < 200
-    def strategy(player_score, turn_points, dice_remaining):
-        return turn_points < 200
+    # Risky: when first roll < 300 -> throws again
+    monkeypatch.setattr(
+        Dice, "roll", make_roll_sequence([[1, 2, 3, 4, 6, 6], [1, 1, 1, 2, 3]])
+    )
+    p_risky_stop = Player("RiskyStop", Strategy.risky, Scorer.score_default)
+    res_risky_stop = p_risky_stop.play_turn()
+    assert res_risky_stop.gained == 1100
+    assert res_risky_stop.zonked is False
+    assert p_risky_stop.score == 1100
 
-    player1 = Player("C", strategy)
-    rolls1 = [
-        [1, 2, 3, 4, 6, 6],  # ones=1 -> 100
-        [5, 5, 5],  # triple fives -> 500
-    ]
-    monkeypatch.setattr(zonk.Dice, "roll", make_roll_sequence(rolls1))
-    result1 = player1.play_turn()
+    # Risky: when first roll >= 300 -> stops the turn
+    monkeypatch.setattr(
+        Dice, "roll", make_roll_sequence([[4, 4, 4, 2, 2, 3], [1, 1, 1]])
+    )
+    p_risky_go = Player("RiskyGo", Strategy.risky, Scorer.score_default)
+    res_risky_go = p_risky_go.play_turn()
+    assert res_risky_go.gained == 400
+    assert res_risky_go.zonked is False
+    assert p_risky_go.score == 400
 
-    assert result1.gained == 600
-    assert result1.zonked is False
-    assert player1.score == 600
+    # Balanced (low total score): threshold is 150 -> will stop when turn_points >= 150
+    monkeypatch.setattr(
+        Dice, "roll", make_roll_sequence([[5, 5, 1, 2, 3, 4], [1, 1, 1]])
+    )
+    p_bal = Player("Balanced", Strategy.balanced, Scorer.score_default)
+    res_bal = p_bal.play_turn()
+    assert res_bal.gained == 200
+    assert res_bal.zonked is False
+    assert p_bal.score == 200
 
-    player2 = Player("D", strategy)
-    rolls2 = [
-        [1, 1, 3, 4, 6, 6],  # ones=2 -> 200
-        [5, 5, 5],  # triple fives -> 500
-    ]
-    monkeypatch.setattr(zonk.Dice, "roll", make_roll_sequence(rolls2))
-    result2 = player2.play_turn()
-
-    # Второй бросок не произойдёт из-за стратегии игрока (бросать пока меньше 200 очков)
-    assert result2.gained == 200
-    assert result2.zonked is False
-    assert player2.score == 200
+    # Balanced (high total score): threshold is 300 -> will stop when turn_points >= 300
+    p_bal.score += 2800
+    monkeypatch.setattr(
+        Dice, "roll", make_roll_sequence([[5, 5, 1, 2, 3, 4], [1, 1, 1]])
+    )
+    res_bal = p_bal.play_turn()
+    assert res_bal.gained == 1200
+    assert res_bal.zonked is False
+    assert p_bal.score == 4200
 
 
 def test_game_play_and_leaderboard(monkeypatch):
-    # Два игрока, стратегия: не продолжать
-    p1 = Player("Vasya", Strategy.conservative)
-    p2 = Player("Petya", Strategy.conservative)
+    p1 = Player("Vasya", Strategy.conservative, Scorer.score_default)
+    p2 = Player("Petya", Strategy.conservative, Scorer.score_default)
 
-    # Подменяем броски так, чтобы первый игрок сразу получил 1500
-    monkeypatch.setattr(zonk.Dice, "roll", make_roll_sequence([[1, 2, 3, 4, 5, 6]]))
+    monkeypatch.setattr(Dice, "roll", make_roll_sequence([[1, 2, 3, 4, 5, 6]]))
 
     game = Game([p1, p2], target_score=1000)
     history = game.play()
 
-    # Игра завершится после первого хода
     assert game.round == 1
     assert len(history) == 1
     assert history[0].player is p1
     assert p1.score >= 1000
     assert p2.score == 0
 
-    # Сначала Vasya, затем Petya
     leaderboard = game.leaderboard()
     assert leaderboard[0][0] == "Vasya"
     assert leaderboard[1][0] == "Petya"

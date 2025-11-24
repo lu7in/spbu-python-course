@@ -101,14 +101,17 @@ class Scorer:
                 scoring_count += c
                 counts[face] = 0
 
-        if points == 0:
+        ones = counts.get(1, 0)
+        fives = counts.get(5, 0)
+
+        if points == 0 and not ones and not fives:
             zonked = True
 
         return points, scoring_count, extra_throw, zonked
 
     @staticmethod
     def score_all_in(dice: List[int], rolls_made: int) -> Tuple[int, int, bool, bool]:
-        """Tries to score a special combination for three rolls, then scores in the default way."""
+        """Tries to score a special combination for two rolls, then scores in the default way."""
         counts = Counter(dice)
         points = 0
         scoring_count = 0
@@ -127,29 +130,33 @@ class Scorer:
             extra_throw = True
             return points, scoring_count, extra_throw, zonked
 
-        for face in range(1, 7):
-            c = counts.get(face, 0)
-            if c >= 3:
-                if face == 1:
-                    base = 1000
-                else:
-                    base = face * 100
-                gained = base * (c - 2)
-                points += gained
-                scoring_count += c
-                counts[face] = 0
+        if rolls_made > 2:
+            for face in range(1, 7):
+                c = counts.get(face, 0)
+                if c >= 3:
+                    if face == 1:
+                        base = 1000
+                    else:
+                        base = face * 100
+                    gained = base * (c - 2)
+                    points += gained
+                    scoring_count += c
+                    counts[face] = 0
+
+            ones = counts.get(1, 0)
+            fives = counts.get(5, 0)
+            if ones:
+                points += ones * 100
+                scoring_count += ones
+            if fives:
+                points += fives * 50
+                scoring_count += fives
 
         ones = counts.get(1, 0)
         fives = counts.get(5, 0)
-        if ones:
-            points += ones * 100
-            scoring_count += ones
-        if fives:
-            points += fives * 50
-            scoring_count += fives
-
         if points == 0:
-            zonked = True
+            if 3 not in list(counts.values()) and not ones and not fives:
+                zonked = True
 
         return points, scoring_count, extra_throw, zonked
 
@@ -173,7 +180,7 @@ class Strategy:
     @staticmethod
     def risky(player_score: int, turn_points: int, dice_remaining: int) -> bool:
         """Strategy that does not end the turn until it has at least 300 points."""
-        return turn_points >= 300 and dice_remaining > 0
+        return turn_points <= 300 and dice_remaining > 0
 
     @staticmethod
     def balanced(player_score: int, turn_points: int, dice_remaining: int) -> bool:
@@ -182,9 +189,9 @@ class Strategy:
         with a higher total score, rolls until getting 150 points.
         """
         if player_score >= 3000:
-            return turn_points >= 300 and dice_remaining > 0
+            return turn_points <= 300 and dice_remaining > 0
         else:
-            return turn_points >= 150 and dice_remaining > 0
+            return turn_points <= 150 and dice_remaining > 0
 
 
 class Player:

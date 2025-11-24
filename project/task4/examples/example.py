@@ -12,7 +12,7 @@ def main():
         Player("Pasha", Strategy.risky, Scorer.score_all_in),
     ]
 
-    game = Game(players, target_score=10000, max_rounds=50)
+    game = Game(players, target_score=5000, max_rounds=20)
     print("Starting game")
     game.play()
     print("Final leaderboard:")
