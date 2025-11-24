@@ -1,5 +1,5 @@
 """
-Пример запуска игры
+Game example
 """
 
 from project.task4.zonk import *
