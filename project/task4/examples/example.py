@@ -2,19 +2,17 @@
 Пример запуска игры
 """
 
-from project.task4.zonk import Player
-from project.task4.zonk import Strategy
-from project.task4.zonk import Game
+from project.task4.zonk import *
 
 
 def main():
     players = [
-        Player("Anton", Strategy.conservative),
-        Player("Gosha", Strategy.risky),
-        Player("Pasha", Strategy.balanced),
+        Player("Anton", Strategy.balanced, Scorer.score_default),
+        Player("Gosha", Strategy.conservative, Scorer.score_greedy),
+        Player("Pasha", Strategy.risky, Scorer.score_all_in),
     ]
 
-    game = Game(players, target_score=5000, max_rounds=20)
+    game = Game(players, target_score=10000, max_rounds=50)
     print("Starting game")
     game.play()
     print("Final leaderboard:")
