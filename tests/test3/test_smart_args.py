@@ -18,7 +18,7 @@ def test_isolated_creates_copy():
     assert val == {"a": 10}
 
 
-def test_evaluated_called_each_time(monkeypatch):
+def test_evaluated_called_each_time():
     calls = []
 
     def get_number():
@@ -106,7 +106,7 @@ def test_error_if_evaluated_func_requires_args():
         Evaluated(f_with_arg)
 
 
-def test_default_and_evaluated_mix(monkeypatch):
+def test_default_and_evaluated_mix():
     counter = {"n": 0}
 
     def make_num():
